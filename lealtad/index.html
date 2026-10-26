@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#4A1D6B">
+<meta name="robots" content="noindex">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Jireh shop">
+<title>Tarjeta Jireh</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 40'%3E%3Cpath d='M3 34C14 12 34 2 52 8c6 2 9 7 9 12s-3 10-9 12C34 38 14 28 3 6' fill='none' stroke='%234A1D6B' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500&family=Dancing+Script:wght@600&family=Jost:wght@400;500;600&display=swap">
+<style>
+/* Layout: una sola columna tipo app de celular; la tarjeta es el objeto principal, todo lo demás va debajo */
+:root {
+  --paper: #FDF9FC; --surface: #FFFFFF; --ink: #22152C; --muted: #6D5A78;
+  --plum: #4A1D6B; --plum-2: #6E30A1; --rose: #E07FCB; --magenta: #B03A93;
+  --blush: #F3D4EC; --line: #E9D9E6; --autumn: #D98A4B;
+  --ok: #2E7D4F; --warn: #B4531F;
+  --f-display: "Bodoni Moda", Georgia, "Times New Roman", serif;
+  --f-body: "Jost", "Helvetica Neue", Arial, sans-serif;
+  --f-script: "Dancing Script", "Brush Script MT", cursive;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #170E1E; --surface: #22152C; --ink: #F6ECF4; --muted: #BBA6C6;
+  --plum: #C9A2EA; --plum-2: #DDBDF5; --rose: #E992D6; --magenta: #E77CC9;
+  --blush: #3A2347; --line: #3A2A45; --autumn: #E9A46B; --ok: #6FCB95; --warn: #F0A06E;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #170E1E; --surface: #22152C; --ink: #F6ECF4; --muted: #BBA6C6;
+  --plum: #C9A2EA; --plum-2: #DDBDF5; --rose: #E992D6; --magenta: #E77CC9;
+  --blush: #3A2347; --line: #3A2A45; --autumn: #E9A46B; --ok: #6FCB95; --warn: #F0A06E;
+  color-scheme: dark }
+
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.5; -webkit-tap-highlight-color: transparent; }
+.wrap { max-width: 440px; margin: 0 auto; padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 20px; }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.stack.lg { gap: 20px; }
+.stack.sm { gap: 6px; }
+h1, h2 { font-family: var(--f-display); font-weight: 500; text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: 30px; } h2 { font-size: 22px; }
+p { margin: 0; }
+.eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--magenta); font-weight: 600; }
+.script { font-family: var(--f-script); font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+
+/* barra de demo */
+.demo { background: var(--blush); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs button { flex: 1 1 auto; font: 500 14px var(--f-body); padding: 8px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.tabs button[aria-pressed="true"] { background: var(--plum); border-color: var(--plum); color: var(--paper); }
+
+/* marca */
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand svg { width: 44px; height: 30px; flex: none; color: var(--plum); }
+.brand .name { font-family: var(--f-script); font-weight: 600; font-size: 30px; line-height: 1; color: var(--ink); }
+
+/* formulario */
+form { display: flex; flex-direction: column; gap: 14px; }
+label { display: flex; flex-direction: column; gap: 6px; font-weight: 500; font-size: 15px; }
+input { font: 400 17px var(--f-body); padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); width: 100%; box-sizing: border-box; }
+input:focus-visible, button:focus-visible { outline: 3px solid var(--rose); outline-offset: 2px; }
+.btn { font: 600 16px var(--f-body); padding: 14px 18px; border-radius: 14px; border: none; background: var(--plum); color: var(--paper); cursor: pointer; text-align: center; touch-action: manipulation; }
+@media (hover: hover) { .btn:hover:not([disabled]) { background: var(--plum-2); } }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--plum); border: 1.5px solid var(--plum); }
+.btn.rose { background: var(--magenta); }
+.link { all: unset; cursor: pointer; color: var(--muted); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; align-self: center; }
+.row, form.row { display: flex; flex-direction: row; gap: 10px; flex-wrap: wrap; }
+.row > * { flex: 1 1 140px; }
+.note { font-size: 14px; color: var(--muted); }
+.err { color: var(--warn); font-size: 14px; font-weight: 500; }
+
+/* reglas */
+.rules { display: grid; grid-template-columns: auto 1fr; gap: 10px 12px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+.rules .ico { width: 28px; height: 28px; border-radius: 50%; background: var(--blush); display: grid; place-items: center; color: var(--plum); }
+.rules .ico svg { width: 16px; height: 12px; }
+
+/* la tarjeta (siempre morada, en los dos temas, como un pase de wallet) */
+.pass { position: relative; overflow: hidden; border-radius: 22px; color: #FDF9FC; padding: 20px 20px 18px;
+  background:
+    radial-gradient(120% 90% at 105% -10%, rgba(224,128,208,.85) 0, rgba(224,128,208,.25) 38%, transparent 60%),
+    radial-gradient(70% 60% at -10% 110%, rgba(176,58,147,.6) 0, transparent 60%),
+    linear-gradient(160deg, #5B2585 0%, #3D1659 100%);
+  box-shadow: 0 18px 40px -18px rgba(74,29,107,.7); display: flex; flex-direction: column; gap: 16px; }
+.pass .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.pass .logo { font-family: var(--f-script); font-weight: 600; font-size: 30px; line-height: 1; }
+.pass .kind { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; opacity: .85; text-align: right; }
+.pass .who { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.pass .lbl { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; opacity: .75; }
+.pass .val { font-family: var(--f-display); font-size: 22px; line-height: 1.2; overflow-wrap: anywhere; }
+.pass .count { font-family: var(--f-display); font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums; text-align: right; }
+.pass .count small { font-size: 16px; opacity: .75; }
+.stamps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.stamp { aspect-ratio: 1; max-width: 100%; border-radius: 50%; border: 1.5px dashed rgba(253,249,252,.5); display: grid; place-items: center; position: relative; }
+.stamp span { font-size: 12px; opacity: .55; font-variant-numeric: tabular-nums; }
+.stamp.on { border: none; background: #FDF9FC; color: #6E30A1; box-shadow: inset 0 0 0 3px #E080D0; }
+.stamp.on svg { width: 62%; height: auto; transform: rotate(-12deg); }
+.stamp.gift { border-style: solid; border-color: #E080D0; }
+.stamp.gift svg { width: 46%; height: auto; opacity: .9; }
+.stamp.on.gift { background: #E080D0; color: #3D1659; box-shadow: none; }
+.stamp.pop { animation: pop .5s ease-out; }
+@keyframes pop { 0% { transform: scale(.4); } 70% { transform: scale(1.12); } 100% { transform: scale(1); } }
+.pass .foot { font-size: 14px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; opacity: .95; }
+
+.qrbox { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: flex; gap: 16px; align-items: center; }
+.qr { background: #fff; padding: 8px; border-radius: 10px; flex: none; line-height: 0; }
+.qr img, .qr canvas { width: 116px; height: 116px; }
+.code { font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; font-size: 20px; letter-spacing: .08em; color: var(--plum); font-weight: 600; }
+.banner { border-radius: 14px; padding: 14px 16px; background: var(--blush); color: var(--ink); font-weight: 500; }
+.banner.ready { background: var(--magenta); color: var(--paper); }
+
+/* tienda */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+#reader { width: 100%; border-radius: 12px; overflow: hidden; }
+.client-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.client-head .val { font-family: var(--f-display); font-size: 22px; overflow-wrap: anywhere; }
+.mini { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; max-width: 260px; }
+.mini i { aspect-ratio: 1; border-radius: 50%; border: 1.5px dashed var(--line); }
+.mini i.on { background: var(--magenta); border-color: var(--magenta); }
+.list { display: flex; flex-direction: column; }
+.list button { all: unset; cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 10px 4px; border-bottom: 1px solid var(--line); }
+.list button:focus-visible { outline: 3px solid var(--rose); }
+.list .n { font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
+.list .s { font-variant-numeric: tabular-nums; color: var(--plum); font-weight: 600; text-align: right; }
+.list .t { font-size: 13px; color: var(--muted); grid-column: 1 / -1; }
+.pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--magenta); color: var(--paper); }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--paper); padding: 12px 18px; border-radius: 999px; font-weight: 500; z-index: 20; max-width: calc(100% - 32px); box-sizing: border-box; text-align: center; overflow-wrap: anywhere; }
+
+/* cartel */
+.poster { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 24px 20px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; }
+.poster .qr img, .poster .qr canvas { width: 220px; height: 220px; }
+.poster h1 { font-size: 32px; }
+.poster .script { font-size: 26px; color: var(--magenta); }
+.url { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+
+@media (prefers-reduced-motion: reduce) { .stamp.pop { animation: none; } }
+
+/* impresión del cartel: solo la marca y el cartel, siempre en colores claros */
+@media print {
+  :root, :root:not([data-theme="light"]), :root[data-theme="dark"] {
+    --paper: #fff; --surface: #fff; --ink: #22152C; --muted: #6D5A78; --plum: #4A1D6B; --magenta: #B03A93; --line: #E9D9E6; color-scheme: light; }
+  .wrap > :not(.brand):not(#v-cartel), #v-cartel > :not(.poster), .toast { display: none !important; }
+  .wrap { max-width: none; padding: 0; }
+  .poster { border: none; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="fish" viewBox="0 0 64 40"><path d="M3 34C14 12 34 2 52 8c6 2 9 7 9 12s-3 10-9 12C34 38 14 28 3 6" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="49" cy="17" r="2.6" fill="currentColor"/></symbol>
+  <symbol id="gift" viewBox="0 0 24 24"><path d="M4 11h16v10H4zM2 7h20v4H2zM12 7v14M12 7S10 2 7 3.5 9 7 12 7zm0 0s2-5 5-3.5S15 7 12 7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+</svg>
+
+<div class="wrap" id="app">
+  <div class="demo" id="demoBar" hidden>
+    <span><strong>Modo demostración.</strong> Los datos se guardan solo en este navegador. Cambia de vista para probar los dos lados.</span>
+    <div class="tabs" role="group" aria-label="Vista">
+      <button type="button" data-view="clienta" aria-pressed="true">Clienta</button>
+      <button type="button" data-view="tienda" aria-pressed="false">Tienda</button>
+      <button type="button" data-view="cartel" aria-pressed="false">Cartel QR</button>
+    </div>
+  </div>
+
+  <header class="brand">
+    <svg viewBox="0 0 64 40" aria-hidden="true"><use href="#fish"/></svg>
+    <span class="name">Jireh shop</span>
+  </header>
+
+  <!-- ======== CLIENTA ======== -->
+  <section id="v-clienta" class="stack lg">
+    <div id="c-loading" class="note">Cargando tu tarjeta…</div>
+
+    <div id="c-registro" class="stack lg" hidden>
+      <div class="stack" style="gap:8px">
+        <span class="eyebrow">Tarjeta de lealtad</span>
+        <h1>Junta sellos con cada compra y llévate un premio</h1>
+      </div>
+      <div class="rules" id="rules"></div>
+      <form id="f-registro" autocomplete="on" novalidate>
+        <label for="r-nombre">Tu nombre
+          <input id="r-nombre" name="nombre" required maxlength="40" placeholder="Ej. Rosa Martínez" autocomplete="name" autocapitalize="words">
+        </label>
+        <label for="r-tel">Tu WhatsApp (10 dígitos)
+          <input id="r-tel" name="tel" type="tel" required inputmode="numeric" maxlength="16" placeholder="55 1234 5678" autocomplete="tel-national">
+        </label>
+        <p class="err" id="r-err" role="alert" hidden></p>
+        <button class="btn" type="submit" id="r-btn">Crear mi tarjeta</button>
+        <p class="note">Si ya tenías tarjeta, escribe el mismo número y la recuperas con tus sellos.</p>
+      </form>
+    </div>
+
+    <div id="c-tarjeta" class="stack" hidden>
+      <div class="pass" id="pass">
+        <div class="top"><span class="logo">Jireh shop</span><span class="kind">Tarjeta<br>de lealtad</span></div>
+        <div class="stamps" id="stamps" role="img"></div>
+        <div class="who">
+          <div><div class="lbl">Clienta</div><div class="val" id="t-nombre"></div></div>
+          <div><div class="lbl" style="text-align:right">Sellos</div><div class="count" id="t-count"></div></div>
+        </div>
+        <div class="foot"><span id="t-premio"></span><span id="t-premios"></span></div>
+      </div>
+      <div class="banner" id="t-banner" aria-live="polite"></div>
+      <div class="qrbox">
+        <div class="qr" id="t-qr" role="img" aria-label="Código QR de tu tarjeta"></div>
+        <div class="stack sm" style="min-width:0">
+          <span class="eyebrow">Muéstralo en caja</span>
+          <span class="code" id="t-code"></span>
+          <span class="note">Con este código te ponemos tu sello cada vez que compras.</span>
+        </div>
+      </div>
+      <div class="panel">
+        <strong>Guarda tu tarjeta</strong>
+        <p class="small muted">Agrega esta página a la pantalla de inicio de tu celular (menú del navegador, “Agregar a inicio”) o guarda tu enlace personal:</p>
+        <div class="row"><button class="btn ghost" type="button" id="t-copy">Copiar mi enlace</button><button class="btn ghost" type="button" id="t-refresh">Actualizar sellos</button></div>
+      </div>
+      <button class="link" type="button" id="t-otra">¿No es tu tarjeta? Usar otro número</button>
+    </div>
+  </section>
+
+  <!-- ======== TIENDA ======== -->
+  <section id="v-tienda" class="stack" hidden>
+    <div class="stack sm">
+      <span class="eyebrow">Solo para la tienda</span>
+      <h1>Poner sellos</h1>
+    </div>
+
+    <form id="f-pin" class="panel">
+      <label for="pin">PIN de la tienda
+        <input id="pin" type="password" inputmode="numeric" required maxlength="12" autocomplete="off">
+      </label>
+      <p class="err" id="pin-err" role="alert" hidden></p>
+      <button class="btn" type="submit" id="pin-btn">Entrar</button>
+      <p class="note" id="pin-hint" hidden>En la demostración el PIN es <strong>2603</strong>.</p>
+    </form>
+
+    <div id="s-main" class="stack" hidden>
+      <div class="panel">
+        <button class="btn" type="button" id="s-scan">Escanear tarjeta con la cámara</button>
+        <div id="reader" hidden></div>
+        <p class="note" id="s-scan-note" hidden></p>
+        <form id="f-buscar" class="row" style="align-items:flex-end">
+          <label for="s-q" style="flex:2 1 180px">O escribe el código o el teléfono
+            <input id="s-q" required placeholder="JR-7K3Q o 5512345678" autocomplete="off" autocapitalize="characters">
+          </label>
+          <button class="btn ghost" type="submit" id="s-buscar" style="flex:1 1 90px">Buscar</button>
+        </form>
+        <p class="err" id="s-err" role="alert" hidden></p>
+      </div>
+
+      <div class="panel" id="s-client" hidden>
+        <div class="client-head">
+          <span class="val" id="s-nombre"></span>
+          <span class="code" id="s-code" style="font-size:15px"></span>
+        </div>
+        <span class="note" id="s-tel"></span>
+        <div class="mini" id="s-mini" aria-hidden="true"></div>
+        <p id="s-status" style="font-weight:500"></p>
+        <button class="btn" type="button" id="s-add">+1 sello</button>
+        <p class="note" id="s-regla"></p>
+        <div class="row">
+          <button class="btn rose" type="button" id="s-redeem">Entregar premio</button>
+          <button class="btn ghost" type="button" id="s-undo">Quitar un sello</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="client-head"><h2>Clientas</h2><span class="note" id="s-total"></span></div>
+        <input id="s-filter" type="search" placeholder="Buscar por nombre, código o teléfono" aria-label="Buscar clienta" autocomplete="off">
+        <div class="list" id="s-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== CARTEL ======== -->
+  <section id="v-cartel" class="stack" hidden>
+    <div class="poster">
+      <span class="script">¿Ya tienes tu tarjeta?</span>
+      <h1>Escanea y junta sellos con cada compra</h1>
+      <div class="qr" id="p-qr" role="img" aria-label="Código QR de la página de tarjetas"></div>
+      <p id="p-regla" style="font-weight:500"></p>
+      <p class="muted small">Pide tu sello en caja. Sin apps, sin papelitos.</p>
+      <p class="url" id="p-url"></p>
+    </div>
+    <button class="btn ghost" type="button" id="p-print">Imprimir cartel</button>
+    <p class="note">Imprime este cartel o haz captura de pantalla y ponlo junto a la caja. El QR abre la página donde a cada clienta se le genera su tarjeta.</p>
+  </section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+/* ===================== CONFIGURACIÓN ===================== */
+const CONFIG = {
+  // URL del Apps Script (Google Sheets). Vacía = modo demostración (datos solo en este navegador).
+  API_URL: '',
+  // Dirección pública de esta página (la que va en el QR del cartel). Vacía = la dirección actual.
+  APP_URL: 'https://lebhy42.github.io/Jirehshop/lealtad/',
+  META: 5,                                   // sellos para el premio
+  SELLO_REGALO: 1,                           // sellos que se regalan al crear la tarjeta (igual que en Code.gs)
+  REGLA: '1 sello por cada compra de $400 o más, pagando en efectivo o transferencia',
+  PREMIO: '$120 de descuento en tu siguiente compra',
+  PIN_DEMO: '2603'                            // solo para el modo demostración
+};
+/* ========================================================== */
+
+const $ = (id) => document.getElementById(id);
+const DEMO = !CONFIG.API_URL;
+const APP_URL = CONFIG.APP_URL || location.href.split(/[?#]/)[0];
+// localStorage / sessionStorage pueden fallar (modo privado, iframes); nunca deben romper la página
+const mkStore = (s) => ({
+  get(k) { try { return s().getItem(k); } catch { return null; } },
+  set(k, v) { try { s().setItem(k, v); } catch {} },
+  del(k) { try { s().removeItem(k); } catch {} },
+});
+const store = mkStore(() => localStorage), sesion = mkStore(() => sessionStorage);
+const fishSVG = '<svg viewBox="0 0 64 40" aria-hidden="true"><use href="#fish"/></svg>';
+const giftSVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#gift"/></svg>';
+
+/* ---------- backend: demo local con la misma lógica que el Apps Script ---------- */
+const local = (() => {
+  const KEY = 'jireh_lealtad_demo';
+  const load = () => { try { return JSON.parse(store.get(KEY)) || { clientes: [] }; } catch { return { clientes: [] }; } };
+  const save = (db) => store.set(KEY, JSON.stringify(db));
+  const alfabeto = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  const nuevoId = (db) => { let id; do { id = 'JR-' + Array.from({ length: 4 }, () => alfabeto[Math.floor(Math.random() * alfabeto.length)]).join(''); } while (db.clientes.some(c => c.id === id)); return id; };
+  const pub = (c, conTel) => { const t = { id: c.id, nombre: c.nombre, sellos: c.sellos, premios: c.premios, meta: CONFIG.META, ultima: c.ultima }; if (conTel) t.tel = c.tel; return t; };
+  const sinPermiso = (p) => p.pin === CONFIG.PIN_DEMO ? null : { ok: false, error: 'PIN incorrecto.' };
+  const porId = (db, q) => { const s = String(q || '').trim().toUpperCase(); return db.clientes.find(c => c.id === s || c.id === 'JR-' + s); };
+  const find = (db, q) => { const d = String(q || '').replace(/\D/g, '').slice(-10); return porId(db, q) || (d.length === 10 ? db.clientes.find(c => c.tel === d) : undefined); };
+  return {
+    async registrar({ nombre, tel }) {
+      const db = load(); tel = String(tel).replace(/\D/g, '').slice(-10); nombre = String(nombre).replace(/\s+/g, ' ').trim().slice(0, 40);
+      if (!nombre || tel.length !== 10) return { ok: false, error: 'Escribe tu nombre y un teléfono de 10 dígitos.' };
+      let c = db.clientes.find(x => x.tel === tel);
+      if (c) return { ok: true, existente: true, tarjeta: pub(c) };
+      c = { id: nuevoId(db), nombre, tel, sellos: CONFIG.SELLO_REGALO, premios: 0, alta: new Date().toISOString(), ultima: '' };
+      db.clientes.push(c); save(db); return { ok: true, tarjeta: pub(c) };
+    },
+    // la tarjeta de la clienta solo se abre con su código, no con el teléfono
+    async tarjeta({ id }) { const c = porId(load(), id); return c ? { ok: true, tarjeta: pub(c) } : { ok: false, error: 'No encontramos esa tarjeta.' }; },
+    async pin(p) { return sinPermiso(p) || { ok: true }; },
+    async buscar(p) { const no = sinPermiso(p); if (no) return no; const c = find(load(), p.q); return c ? { ok: true, tarjeta: pub(c, true) } : { ok: false, error: 'No hay ninguna clienta con ese código o teléfono.' }; },
+    async sellar(p) {
+      const no = sinPermiso(p); if (no) return no;
+      const db = load(); const c = porId(db, p.id); if (!c) return { ok: false, error: 'No encontramos esa tarjeta.' };
+      const d = Number(p.delta) < 0 ? -1 : 1;
+      if (d > 0 && c.sellos >= CONFIG.META) return { ok: false, error: 'La tarjeta ya está llena. Entrega el premio primero.' };
+      if (d < 0 && c.sellos <= 0) return { ok: false, error: 'La tarjeta no tiene sellos.' };
+      c.sellos += d; c.ultima = new Date().toISOString(); save(db); return { ok: true, tarjeta: pub(c, true) };
+    },
+    async canjear(p) {
+      const no = sinPermiso(p); if (no) return no;
+      const db = load(); const c = porId(db, p.id); if (!c) return { ok: false, error: 'No encontramos esa tarjeta.' };
+      if (c.sellos < CONFIG.META) return { ok: false, error: 'Todavía no completa sus sellos.' };
+      c.sellos = 0; c.premios += 1; c.ultima = new Date().toISOString(); save(db); return { ok: true, tarjeta: pub(c, true) };
+    },
+    async clientes(p) { const no = sinPermiso(p); if (no) return no; return { ok: true, clientes: load().clientes.map(c => pub(c, true)) }; },
+  };
+})();
+
+async function api(action, params = {}) {
+  if (DEMO) return local[action](params);
+  const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 20000);
+  try {
+    const url = CONFIG.API_URL + '?' + new URLSearchParams({ action, ...params });
+    const r = await fetch(url, { cache: 'no-store', signal: ctrl.signal });
+    const txt = await r.text();
+    try { return JSON.parse(txt); } catch { return { ok: false, error: 'El servidor no respondió bien. Revisa que el Apps Script esté publicado para “Cualquier persona”.' }; }
+  } catch (e) {
+    return { ok: false, error: e.name === 'AbortError' ? 'El servidor tardó demasiado. Inténtalo otra vez.' : 'Sin conexión. Revisa tu internet e inténtalo otra vez.' };
+  } finally { clearTimeout(timer); }
+}
+
+/* ---------- utilidades ---------- */
+let toastT;
+function toast(msg, ms = 2600) { const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, ms); }
+function showErr(el, msg) { el.textContent = msg || ''; el.hidden = !msg; }
+// Se dibuja al doble de tamaño para que se vea nítido en pantallas de alta densidad; el CSS lo muestra al tamaño real
+function qr(el, text, size) {
+  if (el.dataset.qr === text) return;
+  el.innerHTML = ''; el.dataset.qr = text;
+  if (window.QRCode) new QRCode(el, { text, width: size * 2, height: size * 2, colorDark: '#22152C', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+  else el.textContent = text;
+}
+function fecha(iso) { if (!iso) return 'sin visitas'; const d = new Date(iso); return isNaN(d) ? 'sin visitas' : d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }); }
+function faltan(n, meta) { const f = meta - n; return f <= 0 ? '¡Premio listo!' : f === 1 ? 'Te falta 1 sello' : `Te faltan ${f} sellos`; }
+const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+/* ---------- vistas ---------- */
+let clientaIniciada = false;
+function vistaDeHash() { const h = location.hash.slice(1); return ['tienda', 'cartel'].includes(h) ? h : 'clienta'; }
+function setView(v) {
+  ['clienta', 'tienda', 'cartel'].forEach(n => { $('v-' + n).hidden = n !== v; });
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === v)));
+  if (v === 'clienta') { if (!clientaIniciada) { clientaIniciada = true; initClienta(); } else if (miTarjeta) cargarTarjeta(miTarjeta.id); }
+  if (v === 'tienda') initTienda();
+  if (v === 'cartel') renderCartel();
+  if (v !== 'tienda') stopScan();
+}
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
+window.addEventListener('hashchange', () => setView(vistaDeHash()));
+
+/* ---------- clienta ---------- */
+function renderRules() {
+  const items = [];
+  if (CONFIG.SELLO_REGALO > 0) items.push([giftSVG, `<strong>${CONFIG.SELLO_REGALO === 1 ? 'Tu primer sello es' : `Tus primeros ${CONFIG.SELLO_REGALO} sellos son`} de regalo</strong> al crear tu tarjeta.`]);
+  items.push([fishSVG, `<strong>${CONFIG.REGLA}.</strong> Muestra tu tarjeta en caja.`], [giftSVG, `<strong>Al juntar ${CONFIG.META} sellos:</strong> ${CONFIG.PREMIO}.`]);
+  $('rules').innerHTML = items.map(([i, t]) => `<span class="ico">${i}</span><p>${t}</p>`).join('');
+}
+let miTarjeta = null, ultimosSellos = null;
+function renderTarjeta(t) {
+  const meta = t.meta || CONFIG.META;
+  $('c-loading').hidden = true; $('c-registro').hidden = true; $('c-tarjeta').hidden = false;
+  $('stamps').innerHTML = Array.from({ length: meta }, (_, i) => {
+    const on = i < t.sellos, gift = i === meta - 1;
+    const pop = on && ultimosSellos !== null && i >= ultimosSellos ? ' pop' : '';
+    return `<div class="stamp${on ? ' on' : ''}${gift ? ' gift' : ''}${pop}">${on ? (gift ? giftSVG : fishSVG) : (gift ? giftSVG : `<span>${i + 1}</span>`)}</div>`;
+  }).join('');
+  $('stamps').setAttribute('aria-label', `${t.sellos} de ${meta} sellos`);
+  ultimosSellos = t.sellos;
+  $('t-nombre').textContent = t.nombre;
+  $('t-count').innerHTML = `${t.sellos}<small>/${meta}</small>`;
+  $('t-premio').textContent = 'Premio: ' + CONFIG.PREMIO;
+  $('t-premios').textContent = t.premios ? `Premios ganados: ${t.premios}` : '';
+  const listo = t.sellos >= meta;
+  $('t-banner').className = 'banner' + (listo ? ' ready' : '');
+  $('t-banner').textContent = listo ? `¡Completaste tu tarjeta! Pide en caja tu premio: ${CONFIG.PREMIO}.` : `${faltan(t.sellos, meta)} para tu premio.`;
+  $('t-code').textContent = t.id;
+  qr($('t-qr'), t.id, 116);
+}
+function miEnlace(id) { return APP_URL + '?c=' + encodeURIComponent(id); }
+// Deja el código en la dirección: así "Agregar a inicio" guarda la tarjeta aunque el celular no comparta datos con el navegador (iPhone)
+function fijarEnlace(id) { if (DEMO) return; try { history.replaceState(null, '', id ? '?c=' + encodeURIComponent(id) + location.hash : location.pathname + location.hash); } catch {} }
+function mostrarTarjeta(t) { miTarjeta = t; store.set('jireh_tarjeta', t.id); fijarEnlace(t.id); renderTarjeta(t); }
+async function cargarTarjeta(id) {
+  const r = await api('tarjeta', { id });
+  if (r.ok) { mostrarTarjeta(r.tarjeta); return true; }
+  return false;
+}
+async function initClienta() {
+  renderRules();
+  let id = null;
+  try { id = new URLSearchParams(location.search).get('c'); } catch {}
+  id = id || store.get('jireh_tarjeta');
+  if (id && await cargarTarjeta(id)) return;
+  $('c-loading').hidden = true; $('c-registro').hidden = false;
+}
+$('f-registro').addEventListener('submit', async (e) => {
+  e.preventDefault(); showErr($('r-err'));
+  const btn = $('r-btn'); if (btn.disabled) return;
+  btn.disabled = true; btn.textContent = 'Creando tu tarjeta…';
+  const r = await api('registrar', { nombre: $('r-nombre').value, tel: $('r-tel').value });
+  btn.disabled = false; btn.textContent = 'Crear mi tarjeta';
+  if (!r.ok) return showErr($('r-err'), r.error);
+  ultimosSellos = null; mostrarTarjeta(r.tarjeta);
+  toast(r.existente ? `¡Bienvenida de vuelta, ${r.tarjeta.nombre}!` : CONFIG.SELLO_REGALO ? '¡Tu tarjeta está lista y ya tienes tu primer sello de regalo!' : '¡Tu tarjeta está lista!');
+});
+if (navigator.share) $('t-copy').textContent = 'Compartir mi enlace';
+$('t-copy').addEventListener('click', async () => {
+  if (!miTarjeta) return;
+  const link = miEnlace(miTarjeta.id);
+  if (navigator.share) {
+    try { await navigator.share({ title: 'Mi tarjeta Jireh shop', url: link }); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  try { await navigator.clipboard.writeText(link); toast('Enlace copiado'); } catch { toast(link, 8000); }
+});
+$('t-refresh').addEventListener('click', async () => {
+  if (!miTarjeta) return;
+  const b = $('t-refresh'); b.disabled = true;
+  toast(await cargarTarjeta(miTarjeta.id) ? 'Tarjeta actualizada' : 'No se pudo actualizar. Revisa tu internet.');
+  b.disabled = false;
+});
+$('t-otra').addEventListener('click', () => {
+  miTarjeta = null; ultimosSellos = null; store.del('jireh_tarjeta'); fijarEnlace(null);
+  $('f-registro').reset(); $('c-tarjeta').hidden = true; $('c-registro').hidden = false; $('r-nombre').focus();
+});
+
+/* ---------- tienda ---------- */
+let PIN = null, actual = null, todas = [], enCurso = false, pinGuardadoProbado = false;
+$('pin-hint').hidden = !DEMO;
+async function entrarTienda(p) {
+  const r = await api('pin', { pin: p });
+  if (!r.ok) return r;
+  PIN = p; sesion.set('jireh_pin', p); showErr($('pin-err'));
+  $('f-pin').hidden = true; $('s-main').hidden = false; cargarLista();
+  return r;
+}
+// El PIN se recuerda mientras la pestaña siga abierta, para no escribirlo en cada recarga
+function initTienda() {
+  if (PIN) return cargarLista();
+  const p = sesion.get('jireh_pin');
+  if (p && !pinGuardadoProbado) { pinGuardadoProbado = true; entrarTienda(p).then(r => { if (!r.ok) sesion.del('jireh_pin'); }); }
+}
+$('f-pin').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = $('pin-btn'); if (btn.disabled) return;
+  btn.disabled = true;
+  const r = await entrarTienda($('pin').value.trim());
+  btn.disabled = false;
+  if (!r.ok) showErr($('pin-err'), r.error || 'PIN incorrecto.');
+  else $('pin').value = '';
+});
+function renderCliente(t) {
+  actual = t; $('s-client').hidden = false;
+  $('s-nombre').textContent = t.nombre; $('s-code').textContent = t.id;
+  $('s-tel').textContent = `Tel. ${t.tel ? t.tel.replace(/(\d{2})(\d{4})(\d{4})/, '$1 $2 $3') : ''} · última visita: ${fecha(t.ultima)} · premios: ${t.premios}`;
+  $('s-mini').innerHTML = Array.from({ length: t.meta }, (_, i) => `<i class="${i < t.sellos ? 'on' : ''}"></i>`).join('');
+  const listo = t.sellos >= t.meta;
+  $('s-status').innerHTML = listo ? `<span class="pill">Premio listo</span> Entrégale: ${CONFIG.PREMIO}` : `${t.sellos} de ${t.meta} sellos. Le faltan ${t.meta - t.sellos}.`;
+  $('s-regla').textContent = `Sello solo si: ${CONFIG.REGLA.replace(/^1 sello por cada /, '')}.`;
+  $('s-add').disabled = enCurso || listo; $('s-redeem').disabled = enCurso || !listo; $('s-undo').disabled = enCurso || t.sellos <= 0;
+}
+async function buscar(q) {
+  showErr($('s-err')); resetCanje();
+  const btn = $('s-buscar'); btn.disabled = true;
+  const r = await api('buscar', { q, pin: PIN });
+  btn.disabled = false;
+  if (!r.ok) { $('s-client').hidden = true; actual = null; return showErr($('s-err'), r.error); }
+  renderCliente(r.tarjeta); $('s-q').value = '';
+  $('s-client').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+$('f-buscar').addEventListener('submit', (e) => { e.preventDefault(); if (!$('s-buscar').disabled) buscar($('s-q').value); });
+// Una sola acción a la vez: evita poner dos sellos por un doble toque mientras responde el servidor
+async function accion(action, extra, msg) {
+  if (enCurso || !actual) return;
+  enCurso = true; renderCliente(actual);
+  try {
+    const r = await api(action, { id: actual.id, pin: PIN, ...extra });
+    if (!r.ok) return toast(r.error);
+    actual = r.tarjeta; toast(msg(r.tarjeta)); actualizarEnLista(r.tarjeta);
+  } finally { enCurso = false; renderCliente(actual); }
+}
+$('s-add').addEventListener('click', () => accion('sellar', { delta: 1 }, t => t.sellos >= t.meta ? `Sello puesto. ¡${t.nombre} completó su tarjeta!` : `Sello puesto a ${t.nombre}`));
+$('s-undo').addEventListener('click', () => accion('sellar', { delta: -1 }, () => 'Sello quitado'));
+// Entregar premio pide un segundo toque para confirmar (reinicia la tarjeta)
+let canjeT;
+function resetCanje() { clearTimeout(canjeT); const b = $('s-redeem'); delete b.dataset.confirm; b.textContent = 'Entregar premio'; }
+$('s-redeem').addEventListener('click', () => {
+  const b = $('s-redeem');
+  if (!b.dataset.confirm) { b.dataset.confirm = '1'; b.textContent = '¿Seguro? Toca otra vez'; canjeT = setTimeout(resetCanje, 4000); return; }
+  resetCanje(); accion('canjear', {}, t => `Premio entregado. La tarjeta de ${t.nombre} empieza de nuevo.`);
+});
+const porFecha = (a, b) => (b.ultima || '').localeCompare(a.ultima || '');
+async function cargarLista() {
+  const r = await api('clientes', { pin: PIN }); if (!r.ok) return;
+  todas = r.clientes.sort(porFecha); renderLista();
+}
+function actualizarEnLista(t) {
+  const i = todas.findIndex(c => c.id === t.id);
+  if (i >= 0) todas[i] = t; else todas.push(t);
+  todas.sort(porFecha); renderLista();
+}
+function renderLista() {
+  const f = norm($('s-filter').value.trim()), fd = f.replace(/\D/g, '');
+  const xs = todas.filter(c => !f || norm(c.nombre).includes(f) || c.id.toLowerCase().includes(f) || (fd.length >= 3 && (c.tel || '').includes(fd)));
+  $('s-total').textContent = `${todas.length} con tarjeta`;
+  const list = $('s-list');
+  if (!xs.length) { list.innerHTML = `<p class="note" style="padding:10px 4px">${todas.length ? 'Nadie con esa búsqueda.' : 'Todavía no hay clientas. Cuando alguien escanee el cartel aparecerá aquí.'}</p>`; return; }
+  const frag = document.createDocumentFragment();
+  xs.forEach(c => {
+    const b = document.createElement('button'); b.type = 'button'; b.dataset.id = c.id;
+    const n = document.createElement('span'); n.className = 'n'; n.textContent = c.nombre;
+    const s = document.createElement('span'); s.className = 's'; s.textContent = c.sellos >= c.meta ? 'Premio listo' : `${c.sellos}/${c.meta}`;
+    const t = document.createElement('span'); t.className = 't'; t.textContent = `${c.id} · última visita: ${fecha(c.ultima)}`;
+    b.append(n, s, t); frag.append(b);
+  });
+  list.replaceChildren(frag);
+}
+$('s-list').addEventListener('click', (e) => { const b = e.target.closest('button[data-id]'); if (b) buscar(b.dataset.id); });
+$('s-filter').addEventListener('input', renderLista);
+
+// Escáner con la cámara (funciona en la página publicada; carga la librería solo cuando se usa)
+let scanner = null, abriendo = false;
+function loadScript(src) { return new Promise((ok, bad) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = bad; document.head.append(s); }); }
+// Acepta el código solo o un enlace con ?c=JR-XXXX
+function codigoDe(txt) { try { return new URL(txt).searchParams.get('c') || txt; } catch { return txt; } }
+async function stopScan() {
+  const s = scanner; scanner = null;
+  if (s) { try { await s.stop(); } catch {} try { s.clear(); } catch {} }
+  $('reader').hidden = true; $('s-scan').textContent = 'Escanear tarjeta con la cámara';
+}
+$('s-scan').addEventListener('click', async () => {
+  if (scanner) return stopScan();
+  if (abriendo) return;
+  const note = $('s-scan-note'); note.hidden = true; abriendo = true;
+  try {
+    if (!window.Html5Qrcode) await loadScript('https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js');
+    $('reader').hidden = false; $('s-scan').textContent = 'Cerrar cámara';
+    const s = scanner = new Html5Qrcode('reader');
+    const caja = (w, h) => { const m = Math.max(120, Math.floor(Math.min(w, h) * 0.7)); return { width: m, height: m }; };
+    // el lector puede avisar varias veces el mismo código: solo se usa la primera
+    await s.start({ facingMode: 'environment' }, { fps: 10, qrbox: caja }, (txt) => { if (scanner !== s) return; stopScan(); buscar(codigoDe(txt)); });
+  } catch {
+    stopScan(); note.hidden = false;
+    note.textContent = 'No se pudo abrir la cámara aquí. Escribe el código que aparece debajo del QR de la clienta.';
+  } finally { abriendo = false; }
+});
+
+// La página se actualiza sola cuando se regresa a ella
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) return;
+  if (!$('v-clienta').hidden && miTarjeta) cargarTarjeta(miTarjeta.id);
+  if (!$('v-tienda').hidden && PIN) cargarLista();
+});
+
+/* ---------- cartel ---------- */
+function renderCartel() {
+  qr($('p-qr'), APP_URL, 220);
+  $('p-regla').textContent = `${CONFIG.REGLA}. Con ${CONFIG.META} sellos: ${CONFIG.PREMIO}.`;
+  $('p-url').textContent = APP_URL;
+}
+$('p-print').addEventListener('click', () => window.print());
+
+/* ---------- arranque ---------- */
+$('demoBar').hidden = !DEMO;
+setView(vistaDeHash());
+</script>
+
+</body>
+</html>
