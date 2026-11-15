@@ -2,6 +2,9 @@
 {
   "name": "jirehshop",
   "compatibility_date": "2026-11-01",
+  // Publica en la dirección gratuita *.workers.dev (el interruptor "Production" del panel)
+  "workers_dev": true,
+  "preview_urls": false,
   "assets": {
     "directory": "./"
   }
