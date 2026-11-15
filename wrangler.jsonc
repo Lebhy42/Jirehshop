@@ -1,0 +1,8 @@
+// Publicación en Cloudflare (Workers & Pages): sitio estático, sin código de servidor.
+{
+  "name": "jirehshop",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./"
+  }
+}
