@@ -12,7 +12,8 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 40'%3E%3Cpath d='M3 34C14 12 34 2 52 8c6 2 9 7 9 12s-3 10-9 12C34 38 14 28 3 6' fill='none' stroke='%234A1D6B' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500&family=Dancing+Script:wght@600&family=Jost:wght@400;500;600&display=swap">
+<!-- Las fuentes no bloquean la página: si la red del celular es lenta, se ve con letra del sistema y luego cambia -->
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500&family=Dancing+Script:wght@600&family=Jost:wght@400;500;600&display=swap">
 <style>
 /* Layout: una sola columna tipo app de celular; la tarjeta es el objeto principal, todo lo demás va debajo */
 :root {
@@ -296,14 +297,15 @@ input:focus-visible, button:focus-visible { outline: 3px solid var(--rose); outl
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="qrcode.min.js"></script>
 <script>
 /* ===================== CONFIGURACIÓN ===================== */
 const CONFIG = {
   // URL del Apps Script (Google Sheets). Vacía = modo demostración (datos solo en este navegador).
   API_URL: 'https://script.google.com/macros/s/AKfycbyMEYbi2BbnyP5Q5BigiAx-W-LbDk7S9WWKsIThI9w37071Xqnr6PK62reSin4cl03opQ/exec',
-  // Dirección pública de esta página (la que va en el QR del cartel). Vacía = la dirección actual.
-  APP_URL: 'https://lebhy42.github.io/Jirehshop/lealtad/',
+  // Dirección pública de esta página (la que va en el QR del cartel). Vacía = la dirección actual,
+  // así el cartel y los enlaces funcionan igual en GitHub Pages, Cloudflare Pages o Netlify.
+  APP_URL: '',
   META: 5,                                   // sellos para el premio
   SELLO_REGALO: 1,                           // sellos que se regalan al crear la tarjeta (igual que en Code.gs)
   REGLA: '1 sello por cada compra de $400 o más, pagando en efectivo o transferencia',
@@ -367,8 +369,21 @@ const local = (() => {
   };
 })();
 
+// Con datos móviles la conexión se corta seguido (cambio de antena, 4G↔3G): las consultas se reintentan solas.
+// Poner sellos y entregar premios NO se reintentan, para no duplicarlos si el primer intento sí llegó.
+const SIN_REINTENTO = ['sellar', 'canjear'];
 async function api(action, params = {}) {
   if (DEMO) return local[action](params);
+  const intentos = SIN_REINTENTO.includes(action) ? 1 : 3;
+  let r;
+  for (let i = 0; i < intentos; i++) {
+    if (i) await new Promise(ok => setTimeout(ok, 1200 * i));
+    r = await api1(action, params);
+    if (!r.red) break;
+  }
+  return r;
+}
+async function api1(action, params) {
   const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 20000);
   try {
     const url = CONFIG.API_URL + '?' + new URLSearchParams({ action, ...params });
@@ -376,7 +391,7 @@ async function api(action, params = {}) {
     const txt = await r.text();
     try { return JSON.parse(txt); } catch { return { ok: false, error: 'El servidor no respondió bien. Revisa que el Apps Script esté publicado para “Cualquier persona”.' }; }
   } catch (e) {
-    return { ok: false, error: e.name === 'AbortError' ? 'El servidor tardó demasiado. Inténtalo otra vez.' : 'Sin conexión. Revisa tu internet e inténtalo otra vez.' };
+    return { ok: false, red: true, error: e.name === 'AbortError' ? 'El servidor tardó demasiado. Inténtalo otra vez.' : 'Sin conexión. Revisa tu internet e inténtalo otra vez.' };
   } finally { clearTimeout(timer); }
 }
 
@@ -440,18 +455,32 @@ function renderTarjeta(t) {
 function miEnlace(id) { return APP_URL + '?c=' + encodeURIComponent(id); }
 // Deja el código en la dirección: así "Agregar a inicio" guarda la tarjeta aunque el celular no comparta datos con el navegador (iPhone)
 function fijarEnlace(id) { if (DEMO) return; try { history.replaceState(null, '', id ? '?c=' + encodeURIComponent(id) + location.hash : location.pathname + location.hash); } catch {} }
-function mostrarTarjeta(t) { miTarjeta = t; store.set('jireh_tarjeta', t.id); fijarEnlace(t.id); renderTarjeta(t); }
+function mostrarTarjeta(t) { miTarjeta = t; store.set('jireh_tarjeta', t.id); store.set('jireh_tarjeta_copia', JSON.stringify(t)); fijarEnlace(t.id); renderTarjeta(t); }
+// Última versión guardada en el celular: se muestra al instante y también si no hay internet
+function copiaGuardada(id) {
+  try { const t = JSON.parse(store.get('jireh_tarjeta_copia')); return t && t.id === String(id).trim().toUpperCase() ? t : null; } catch { return null; }
+}
 async function cargarTarjeta(id) {
   const r = await api('tarjeta', { id });
   if (r.ok) { mostrarTarjeta(r.tarjeta); return true; }
-  return false;
+  if (r.red && miTarjeta) toast('Sin internet: mostramos tu tarjeta guardada. Toca «Actualizar» cuando tengas señal.', 5000);
+  return r.red ? null : false;
 }
 async function initClienta() {
   renderRules();
   let id = null;
   try { id = new URLSearchParams(location.search).get('c'); } catch {}
   id = id || store.get('jireh_tarjeta');
-  if (id && await cargarTarjeta(id)) return;
+  if (id) {
+    const copia = copiaGuardada(id);
+    if (copia) { miTarjeta = copia; renderTarjeta(copia); }
+    const r = await cargarTarjeta(id);
+    if (r || miTarjeta) return;
+    if (r === null) {  // no hubo conexión: no mandar a registrarse otra vez, solo pedir que reintente
+      $('c-loading').textContent = 'No pudimos conectar. Revisa tu señal o internet y vuelve a abrir esta página.';
+      return;
+    }
+  }
   $('c-loading').hidden = true; $('c-registro').hidden = false;
 }
 $('f-registro').addEventListener('submit', async (e) => {
@@ -594,7 +623,7 @@ $('s-scan').addEventListener('click', async () => {
   if (abriendo) return;
   const note = $('s-scan-note'); note.hidden = true; abriendo = true;
   try {
-    if (!window.Html5Qrcode) await loadScript('https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js');
+    if (!window.Html5Qrcode) await loadScript('html5-qrcode.min.js');
     $('reader').hidden = false; $('s-scan').textContent = 'Cerrar cámara';
     const s = scanner = new Html5Qrcode('reader');
     const caja = (w, h) => { const m = Math.max(120, Math.floor(Math.min(w, h) * 0.7)); return { width: m, height: m }; };
@@ -624,6 +653,8 @@ $('p-print').addEventListener('click', () => window.print());
 /* ---------- arranque ---------- */
 $('demoBar').hidden = !DEMO;
 setView(vistaDeHash());
+// Guarda la página en el celular: la próxima vez abre aunque la conexión falle
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 
 </body>
