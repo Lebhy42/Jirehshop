@@ -35,7 +35,9 @@ function doPost(e) {
     const fn = ACCIONES_CATALOGO[p.action];
     res = fn ? fn(p) : { ok: false, error: 'Acción no válida.' };
   } catch (err) {
-    res = { ok: false, error: 'Error en el servidor. Inténtalo otra vez.' };
+    // queda en Apps Script > Ejecuciones, y el detalle llega a la página para saber qué pasó
+    console.error(err && err.stack || err);
+    res = { ok: false, error: 'Error en el servidor: ' + (err && err.message || err) };
   }
   return ContentService.createTextOutput(JSON.stringify(res)).setMimeType(ContentService.MimeType.JSON);
 }
@@ -58,7 +60,12 @@ const ACCIONES_CATALOGO = {
     if (bytes.length > MAX_FOTO) return { ok: false, error: 'La foto es demasiado grande.' };
     const ext = m[1] === 'jpeg' ? 'jpg' : m[1];
     const archivo = carpetaFotos().createFile(Utilities.newBlob(bytes, 'image/' + m[1], 'jireh-' + Date.now() + '.' + ext));
-    archivo.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    try {
+      archivo.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (err) {
+      console.error(err);
+      return { ok: false, error: 'La foto se subió a Drive, pero Google no dejó compartirla con enlace: ' + err.message };
+    }
     return { ok: true, foto: archivo.getId() };
   },
 
