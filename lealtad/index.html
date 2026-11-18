@@ -74,7 +74,9 @@ p { margin: 0; }
 /* marca */
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand svg { width: 44px; height: 30px; flex: none; color: var(--plum); }
-.brand .name { font-family: var(--f-script); font-weight: 600; font-size: 30px; line-height: 1; color: var(--ink); }
+.tam { margin-left: auto; font: 600 15px var(--f-body); padding: 8px 12px; border-radius: 999px; border: 1.5px solid var(--plum); background: var(--surface); color: var(--plum); cursor: pointer; white-space: nowrap; }
+.tam span { font-weight: 500; font-size: 13px; }
+.brand .name { white-space: nowrap; font-family: var(--f-script); font-weight: 600; font-size: 30px; line-height: 1; color: var(--ink); }
 
 /* formulario */
 form { display: flex; flex-direction: column; gap: 14px; }
@@ -223,7 +225,8 @@ textarea { resize: vertical; min-height: 72px; }
 @media print {
   :root, :root:not([data-theme="light"]), :root[data-theme="dark"] {
     --paper: #fff; --surface: #fff; --ink: #22152C; --muted: #6D5A78; --plum: #4A1D6B; --magenta: #B03A93; --line: #E9D9E6; color-scheme: light; }
-  .wrap > :not(.brand):not(#v-cartel), #v-cartel > :not(.poster), .toast { display: none !important; }
+  .wrap > :not(.brand):not(#v-cartel), #v-cartel > :not(.poster), .toast, .tam { display: none !important; }
+  body { zoom: 1 !important; }
   .wrap { max-width: none; padding: 0; }
   .poster { border: none; }
 }
@@ -250,6 +253,7 @@ textarea { resize: vertical; min-height: 72px; }
   <header class="brand">
     <svg viewBox="0 0 64 40" aria-hidden="true"><use href="#fish"/></svg>
     <span class="name">Jireh shop</span>
+    <button type="button" class="tam" id="tam" aria-label="Tamaño del texto">Aa <span id="tam-n">Normal</span></button>
   </header>
 
   <!-- ======== CLIENTA ======== -->
@@ -1359,6 +1363,19 @@ function renderCartel() {
   $('p-url').textContent = APP_URL;
 }
 $('p-print').addEventListener('click', () => window.print());
+
+/* ---------- tamaño del texto ---------- */
+// Agranda toda la página (letra, botones y tarjeta) como el zoom del navegador; se recuerda en ese celular
+const TAMANOS = [[1, 'Normal'], [1.2, 'Grande'], [1.4, 'Muy grande']];
+let tam = Math.max(0, TAMANOS.findIndex(t => String(t[0]) === store.get('jireh_tam')));
+function aplicarTam() {
+  const [z, n] = TAMANOS[tam];
+  document.body.style.zoom = z === 1 ? '' : z;
+  $('tam-n').textContent = n;
+  $('tam').setAttribute('aria-label', `Tamaño del texto: ${n}. Toca para cambiarlo`);
+}
+$('tam').addEventListener('click', () => { tam = (tam + 1) % TAMANOS.length; store.set('jireh_tam', String(TAMANOS[tam][0])); aplicarTam(); });
+aplicarTam();
 
 /* ---------- arranque ---------- */
 $('demoBar').hidden = !DEMO;
