@@ -698,7 +698,12 @@ async function api1(action, params) {
       ? await fetch(CONFIG.API_URL, { method: 'POST', body: JSON.stringify({ action, ...params }), cache: 'no-store', signal: ctrl.signal })
       : await fetch(CONFIG.API_URL + '?' + new URLSearchParams({ action, ...params }), { cache: 'no-store', signal: ctrl.signal });
     const txt = await r.text();
-    try { return JSON.parse(txt); } catch { return { ok: false, error: post ? 'El catálogo todavía no está activado en el Apps Script (falta pegar Catalogo.gs y volver a implementar).' : 'El servidor no respondió bien. Revisa que el Apps Script esté publicado para “Cualquier persona”.' }; }
+    try { return JSON.parse(txt); } catch {
+      // Google respondió una página en vez de datos: se muestra su título para saber qué pidió (permiso, versión, etc.)
+      const titulo = (/<title>([^<]*)<\/title>/i.exec(txt) || [])[1] || '';
+      const det = (txt.replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>|<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()).slice(0, 160);
+      return { ok: false, error: (post ? 'El Apps Script no respondió al catálogo (¿falta pegar Catalogo.gs o hacer Nueva versión?).' : 'El servidor no respondió bien. Revisa que el Apps Script esté publicado para “Cualquier persona”.') + ` [${r.status}] ${titulo || det}` };
+    }
   } catch (e) {
     return { ok: false, red: true, error: e.name === 'AbortError' ? 'El servidor tardó demasiado. Inténtalo otra vez.' : 'Sin conexión. Revisa tu internet e inténtalo otra vez.' };
   } finally { clearTimeout(timer); }
@@ -1283,11 +1288,12 @@ async function comprimir(file, max = DEMO ? 800 : 1400, q = 0.82) {
 async function agregarFotos(files) {
   for (const file of [...files].slice(0, CONFIG.MAX_FOTOS - edFotos.length)) {
     let src;
-    try { src = await comprimir(file); } catch { toast('No se pudo leer una de las fotos. Prueba con otra.'); continue; }
+    try { src = await comprimir(file); } catch { showErr($('e-err'), 'No se pudo leer una de las fotos. Prueba con otra.'); continue; }
     const x = { f: null, src }; edFotos.push(x); renderFotosEd();
     api('subirFoto', { pin: PIN, foto: src }).then(r => {
       if (!edFotos.includes(x)) return;
-      if (r.ok) x.f = r.foto; else { edFotos = edFotos.filter(y => y !== x); toast(r.error || 'No se pudo subir la foto.', 4000); }
+      // el error se muestra dentro de la ventana: un aviso flotante quedaría escondido detrás de ella
+      if (r.ok) x.f = r.foto; else { edFotos = edFotos.filter(y => y !== x); showErr($('e-err'), 'No se pudo subir la foto. ' + (r.error || '')); }
       renderFotosEd();
     });
   }
