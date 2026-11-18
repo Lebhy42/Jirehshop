@@ -9,6 +9,19 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Jireh shop">
 <title>Tarjeta Jireh</title>
+<!-- Vista previa al compartir en WhatsApp/Facebook: la imagen y textos que salen en la tarjetita del enlace -->
+<meta name="description" content="Tu tarjeta de lealtad de Jireh shop: junta sellos con cada compra y gana $120 de descuento.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_MX">
+<meta property="og:title" content="Tarjeta de lealtad Jireh shop">
+<meta property="og:description" content="Junta sellos con cada compra de $400 o más y gana $120 de descuento. Tu primer sello es de regalo.">
+<meta property="og:site_name" content="Jireh shop">
+<meta property="og:url" content="https://jirehshop.jireh.workers.dev/lealtad/">
+<meta property="og:image" content="https://jirehshop.jireh.workers.dev/og/og-tarjeta.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Tarjeta de lealtad de Jireh shop con sellos">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 40'%3E%3Cpath d='M3 34C14 12 34 2 52 8c6 2 9 7 9 12s-3 10-9 12C34 38 14 28 3 6' fill='none' stroke='%234A1D6B' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -61,7 +74,9 @@ p { margin: 0; }
 /* marca */
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand svg { width: 44px; height: 30px; flex: none; color: var(--plum); }
-.brand .name { font-family: var(--f-script); font-weight: 600; font-size: 30px; line-height: 1; color: var(--ink); }
+.tam { margin-left: auto; font: 600 15px var(--f-body); padding: 8px 12px; border-radius: 999px; border: 1.5px solid var(--plum); background: var(--surface); color: var(--plum); cursor: pointer; white-space: nowrap; }
+.tam span { font-weight: 500; font-size: 13px; }
+.brand .name { white-space: nowrap; font-family: var(--f-script); font-weight: 600; font-size: 30px; line-height: 1; color: var(--ink); }
 
 /* formulario */
 form { display: flex; flex-direction: column; gap: 14px; }
@@ -210,7 +225,8 @@ textarea { resize: vertical; min-height: 72px; }
 @media print {
   :root, :root:not([data-theme="light"]), :root[data-theme="dark"] {
     --paper: #fff; --surface: #fff; --ink: #22152C; --muted: #6D5A78; --plum: #4A1D6B; --magenta: #B03A93; --line: #E9D9E6; color-scheme: light; }
-  .wrap > :not(.brand):not(#v-cartel), #v-cartel > :not(.poster), .toast { display: none !important; }
+  .wrap > :not(.brand):not(#v-cartel), #v-cartel > :not(.poster), .toast, .tam { display: none !important; }
+  body { zoom: 1 !important; }
   .wrap { max-width: none; padding: 0; }
   .poster { border: none; }
 }
@@ -237,6 +253,7 @@ textarea { resize: vertical; min-height: 72px; }
   <header class="brand">
     <svg viewBox="0 0 64 40" aria-hidden="true"><use href="#fish"/></svg>
     <span class="name">Jireh shop</span>
+    <button type="button" class="tam" id="tam" aria-label="Tamaño del texto">Aa <span id="tam-n">Normal</span></button>
   </header>
 
   <!-- ======== CLIENTA ======== -->
@@ -377,6 +394,7 @@ textarea { resize: vertical; min-height: 72px; }
         <div class="stack sm" style="flex:2 1 200px"><strong>Modo dueña</strong><span class="note">Toca una prenda para editarla, marcarla agotada u ocultarla.</span></div>
         <button class="btn" type="button" id="k-nuevo">+ Agregar producto</button>
       </div>
+      <button class="btn ghost" type="button" id="k-share-cat">Compartir el catálogo por WhatsApp</button>
     </div>
     <div class="chips" id="k-cats" role="group" aria-label="Categorías" hidden></div>
     <div class="grid" id="k-grid"></div>
@@ -543,6 +561,9 @@ const CONFIG = {
 const $ = (id) => document.getElementById(id);
 const DEMO = !CONFIG.API_URL;
 const APP_URL = CONFIG.APP_URL || location.href.split(/[?#]/)[0];
+// El catálogo se comparte con su propia dirección (/catalogo/) para que WhatsApp muestre su portada
+const CAT_URL = new URL('../catalogo/', APP_URL).href;
+const enlaceProd = (id) => CAT_URL + '#' + encodeURIComponent(id);
 // localStorage / sessionStorage pueden fallar (modo privado, iframes); nunca deben romper la página
 const mkStore = (s) => ({
   get(k) { try { return s().getItem(k); } catch { return null; } },
@@ -1218,7 +1239,7 @@ function actualizarWA() {
   if (p.estado === 'agotado') m += '\n¿La van a volver a tener?';
   else if (tallaSel) m += `\nLa quiero en talla *${tallaSel}*.`;
   else if (p.tallas.length) m += `\n¿Qué tallas tienen disponibles?`;
-  m += `\n${APP_URL}#catalogo/${p.id}`;
+  m += `\n${enlaceProd(p.id)}`;
   $('d-wa').href = waLink(CONFIG.WHATSAPP, m);
 }
 $('d-tallas').addEventListener('click', (e) => {
@@ -1230,7 +1251,7 @@ $('d-carr').addEventListener('scroll', () => {
   $('d-carr-n').textContent = `Foto ${i} de ${detalle.fotos.length}`;
 }, { passive: true });
 $('d-share').addEventListener('click', async () => {
-  const url = `${APP_URL}#catalogo/${detalle.id}`;
+  const url = enlaceProd(detalle.id);
   if (navigator.share) { try { await navigator.share({ title: detalle.nombre, text: `${detalle.nombre} en Jireh shop`, url }); return; } catch (e) { if (e.name === 'AbortError') return; } }
   try { await navigator.clipboard.writeText(url); toast('Enlace copiado'); } catch { toast(url, 8000); }
 });
@@ -1328,6 +1349,12 @@ $('e-borrar').addEventListener('click', async () => {
   productos = productos.filter(x => x.id !== edit.id); $('d-edit').close(); renderCatalogo(); toast('Producto borrado');
 });
 $('k-nuevo').addEventListener('click', () => abrirEditor(null));
+// La dueña comparte el catálogo completo (en WhatsApp sale con su portada)
+$('k-share-cat').addEventListener('click', async () => {
+  const texto = '¡Mira el catálogo de Jireh shop! Elige tu prenda y pídela por WhatsApp:';
+  if (navigator.share) { try { await navigator.share({ title: 'Catálogo Jireh shop', text: texto, url: CAT_URL }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+  window.open(waLink('', texto + ' ' + CAT_URL), '_blank', 'noopener');
+});
 
 /* ---------- cartel ---------- */
 function renderCartel() {
@@ -1336,6 +1363,19 @@ function renderCartel() {
   $('p-url').textContent = APP_URL;
 }
 $('p-print').addEventListener('click', () => window.print());
+
+/* ---------- tamaño del texto ---------- */
+// Agranda toda la página (letra, botones y tarjeta) como el zoom del navegador; se recuerda en ese celular
+const TAMANOS = [[1, 'Normal'], [1.2, 'Grande'], [1.4, 'Muy grande']];
+let tam = Math.max(0, TAMANOS.findIndex(t => String(t[0]) === store.get('jireh_tam')));
+function aplicarTam() {
+  const [z, n] = TAMANOS[tam];
+  document.body.style.zoom = z === 1 ? '' : z;
+  $('tam-n').textContent = n;
+  $('tam').setAttribute('aria-label', `Tamaño del texto: ${n}. Toca para cambiarlo`);
+}
+$('tam').addEventListener('click', () => { tam = (tam + 1) % TAMANOS.length; store.set('jireh_tam', String(TAMANOS[tam][0])); aplicarTam(); });
+aplicarTam();
 
 /* ---------- arranque ---------- */
 $('demoBar').hidden = !DEMO;
