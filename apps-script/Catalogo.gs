@@ -22,7 +22,7 @@ const HOJA_CATALOGO = 'Catalogo';
 const HOJA_APARTADOS = 'Apartados';
 const HOJA_ABONOS = 'Abonos';
 const CARPETA_FOTOS = 'Catálogo Jireh shop (fotos)';
-const COLS_CAT = ['id', 'nombre', 'categoria', 'precio', 'oferta', 'tallas', 'fotos', 'descripcion', 'estado', 'alta', 'actualizado'];
+const COLS_CAT = ['id', 'nombre', 'categoria', 'precio', 'oferta', 'tallas', 'fotos', 'descripcion', 'estado', 'alta', 'actualizado', 'colores'];
 const COLS_AP = ['id', 'cliente', 'nombre', 'tel', 'prenda', 'total', 'pagado', 'alta', 'limite', 'estado', 'actualizado'];
 const COLS_ABONO = ['fecha', 'abono', 'apartado', 'cliente', 'nombre', 'monto', 'saldo'];
 const ESTADOS = ['disponible', 'agotado', 'oculto'];
@@ -85,6 +85,7 @@ const ACCIONES_CATALOGO = {
       id, nombre, precio, oferta,
       categoria: texto(d.categoria, 30),
       tallas: (Array.isArray(d.tallas) ? d.tallas : []).map(t => texto(t, 12).replace(/,/g, ' ')).filter(Boolean).slice(0, 15),
+      colores: (Array.isArray(d.colores) ? d.colores : []).map(t => texto(t, 25).replace(/,/g, ' ')).filter(Boolean).slice(0, 15),
       fotos: (Array.isArray(d.fotos) ? d.fotos : []).map(String).filter(f => /^[\w-]{10,}$/.test(f)).slice(0, 6),
       descripcion: texto(d.descripcion, 300),
       estado: ESTADOS.indexOf(d.estado) >= 0 ? d.estado : 'disponible',
@@ -94,7 +95,7 @@ const ACCIONES_CATALOGO = {
       const existe = leerCatalogo().find(x => x.id === id);
       prod.alta = existe ? existe.alta : ahora;
       prod.actualizado = ahora;
-      const fila = COLS_CAT.map(k => k === 'tallas' ? prod.tallas.join(', ') : k === 'fotos' ? prod.fotos.join(',') : celda(prod[k]));
+      const fila = COLS_CAT.map(k => k === 'tallas' || k === 'colores' ? prod[k].join(', ') : k === 'fotos' ? prod.fotos.join(',') : celda(prod[k]));
       const h = hoja2(HOJA_CATALOGO, COLS_CAT);
       if (existe) h.getRange(existe.fila, 1, 1, COLS_CAT.length).setValues([fila]);
       else h.appendRow(fila);
@@ -216,6 +217,8 @@ function hoja2(nombre, cols) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let h = ss.getSheetByName(nombre);
   if (!h) { h = ss.insertSheet(nombre); h.appendRow(cols); h.setFrozenRows(1); }
+  // columnas nuevas (como 'colores') se agregan al final de una hoja que ya existía
+  else if (h.getLastColumn() < cols.length) h.getRange(1, 1, 1, cols.length).setValues([cols]);
   return h;
 }
 function filas(nombre, cols) {
@@ -230,13 +233,14 @@ function leerCatalogo() {
     fila: x.fila, id: String(x.id), nombre: String(x.nombre), categoria: String(x.categoria || ''),
     precio: Number(x.precio) || 0, oferta: Number(x.oferta) || '',
     tallas: String(x.tallas || '').split(',').map(t => t.trim()).filter(Boolean),
+    colores: String(x.colores || '').split(',').map(t => t.trim()).filter(Boolean),
     fotos: String(x.fotos || '').split(',').map(t => t.trim()).filter(Boolean),
     descripcion: String(x.descripcion || ''), estado: ESTADOS.indexOf(x.estado) >= 0 ? x.estado : 'disponible',
     alta: String(x.alta || ''), actualizado: String(x.actualizado || ''),
   }));
 }
 function pubProd(x) {
-  return { id: x.id, nombre: x.nombre, categoria: x.categoria, precio: x.precio, oferta: x.oferta, tallas: x.tallas, fotos: x.fotos, descripcion: x.descripcion, estado: x.estado, alta: x.alta };
+  return { id: x.id, nombre: x.nombre, categoria: x.categoria, precio: x.precio, oferta: x.oferta, tallas: x.tallas, colores: x.colores, fotos: x.fotos, descripcion: x.descripcion, estado: x.estado, alta: x.alta };
 }
 function leerApartados() {
   return filas(HOJA_APARTADOS, COLS_AP).filter(x => x.id).map(x => ({
