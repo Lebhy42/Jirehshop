@@ -3,7 +3,8 @@
  *
  * Es un archivo NUEVO dentro del mismo proyecto de Apps Script donde ya está Code.gs
  * (Extensiones > Apps Script > "+" > Secuencia de comandos > nómbralo Catalogo).
- * No cambia nada de Code.gs: usa el mismo PIN de la tienda (pinOk) y las mismas clientas.
+ * No cambia nada de Código.gs: pregunta el PIN y las clientas a su doGet (las mismas acciones que usa la página),
+ * así funciona sin importar cómo estén escritas ahí las funciones.
  *
  * Guarda:
  *  - Las fotos en una carpeta de Google Drive ("Catálogo Jireh shop (fotos)"), visibles con el enlace.
@@ -21,7 +22,7 @@ const HOJA_CATALOGO = 'Catalogo';
 const HOJA_APARTADOS = 'Apartados';
 const HOJA_ABONOS = 'Abonos';
 const CARPETA_FOTOS = 'Catálogo Jireh shop (fotos)';
-const COLS_CAT = ['id', 'nombre', 'categoria', 'precio', 'oferta', 'tallas', 'fotos', 'descripcion', 'estado', 'alta', 'actualizado'];
+const COLS_CAT = ['id', 'nombre', 'categoria', 'precio', 'oferta', 'tallas', 'fotos', 'descripcion', 'estado', 'alta', 'actualizado', 'colores'];
 const COLS_AP = ['id', 'cliente', 'nombre', 'tel', 'prenda', 'total', 'pagado', 'alta', 'limite', 'estado', 'actualizado'];
 const COLS_ABONO = ['fecha', 'abono', 'apartado', 'cliente', 'nombre', 'monto', 'saldo'];
 const ESTADOS = ['disponible', 'agotado', 'oculto'];
@@ -47,13 +48,13 @@ const SIN_PIN = { ok: false, error: 'PIN incorrecto.' };
 const ACCIONES_CATALOGO = {
   /* ---------- catálogo ---------- */
   catalogo(p) {
-    const duena = pinOk(p.pin);
+    const duena = pinCatalogo(p.pin);
     const productos = leerCatalogo().filter(x => duena || x.estado !== 'oculto').map(pubProd);
     return { ok: true, duena, productos };
   },
 
   subirFoto(p) {
-    if (!pinOk(p.pin)) return SIN_PIN;
+    if (!pinCatalogo(p.pin)) return SIN_PIN;
     const m = /^data:image\/(jpeg|png|webp);base64,(.+)$/.exec(String(p.foto || ''));
     if (!m) return { ok: false, error: 'La foto no es válida.' };
     const bytes = Utilities.base64Decode(m[2]);
@@ -70,7 +71,7 @@ const ACCIONES_CATALOGO = {
   },
 
   guardarProducto(p) {
-    if (!pinOk(p.pin)) return SIN_PIN;
+    if (!pinCatalogo(p.pin)) return SIN_PIN;
     const d = p.producto || {};
     const id = String(d.id || '');
     if (!/^P-[A-Z0-9]{4,12}$/.test(id)) return { ok: false, error: 'Producto no válido.' };
@@ -84,16 +85,17 @@ const ACCIONES_CATALOGO = {
       id, nombre, precio, oferta,
       categoria: texto(d.categoria, 30),
       tallas: (Array.isArray(d.tallas) ? d.tallas : []).map(t => texto(t, 12).replace(/,/g, ' ')).filter(Boolean).slice(0, 15),
+      colores: (Array.isArray(d.colores) ? d.colores : []).map(t => texto(t, 25).replace(/,/g, ' ')).filter(Boolean).slice(0, 15),
       fotos: (Array.isArray(d.fotos) ? d.fotos : []).map(String).filter(f => /^[\w-]{10,}$/.test(f)).slice(0, 6),
       descripcion: texto(d.descripcion, 300),
       estado: ESTADOS.indexOf(d.estado) >= 0 ? d.estado : 'disponible',
     };
-    return conCandado(() => {
+    return candadoCat(() => {
       const ahora = new Date().toISOString();
       const existe = leerCatalogo().find(x => x.id === id);
       prod.alta = existe ? existe.alta : ahora;
       prod.actualizado = ahora;
-      const fila = COLS_CAT.map(k => k === 'tallas' ? prod.tallas.join(', ') : k === 'fotos' ? prod.fotos.join(',') : celda(prod[k]));
+      const fila = COLS_CAT.map(k => k === 'tallas' || k === 'colores' ? prod[k].join(', ') : k === 'fotos' ? prod.fotos.join(',') : celda(prod[k]));
       const h = hoja2(HOJA_CATALOGO, COLS_CAT);
       if (existe) h.getRange(existe.fila, 1, 1, COLS_CAT.length).setValues([fila]);
       else h.appendRow(fila);
@@ -104,8 +106,8 @@ const ACCIONES_CATALOGO = {
   },
 
   borrarProducto(p) {
-    if (!pinOk(p.pin)) return SIN_PIN;
-    return conCandado(() => {
+    if (!pinCatalogo(p.pin)) return SIN_PIN;
+    return candadoCat(() => {
       const x = leerCatalogo().find(y => y.id === String(p.id || ''));
       if (!x) return { ok: true };
       hoja2(HOJA_CATALOGO, COLS_CAT).deleteRow(x.fila);
@@ -116,7 +118,7 @@ const ACCIONES_CATALOGO = {
 
   /* ---------- apartados y abonos ---------- */
   apartados(p) {
-    if (!pinOk(p.pin)) return SIN_PIN;
+    if (!pinCatalogo(p.pin)) return SIN_PIN;
     const cliente = String(p.cliente || '');
     const xs = leerApartados().filter(a => cliente ? a.cliente === cliente : a.estado === 'abierto');
     return { ok: true, apartados: conAbonos(xs).map(a => pubAp(a, true)) };
@@ -124,14 +126,15 @@ const ACCIONES_CATALOGO = {
 
   // para la tarjeta de la clienta: solo sus apartados abiertos y sin teléfono
   misApartados(p) {
-    const c = buscar(leer(), p.id);
+    const r = llamarCodigo({ action: 'tarjeta', id: String(p.id || '') });
+    const c = r.ok && r.tarjeta;
     if (!c) return { ok: false, error: 'No encontramos esa tarjeta.' };
     const xs = leerApartados().filter(a => a.cliente === c.id && a.estado === 'abierto');
     return { ok: true, apartados: conAbonos(xs).map(a => pubAp(a)) };
   },
 
   nuevoApartado(p) {
-    if (!pinOk(p.pin)) return SIN_PIN;
+    if (!pinCatalogo(p.pin)) return SIN_PIN;
     const d = p.apartado || {};
     const id = String(d.id || '');
     if (!/^A-[A-Z0-9]{4,12}$/.test(id)) return { ok: false, error: 'Apartado no válido.' };
@@ -141,11 +144,14 @@ const ACCIONES_CATALOGO = {
     if (!prenda) return { ok: false, error: 'Escribe qué prenda se aparta.' };
     if (!(total > 0)) return { ok: false, error: 'Escribe el precio total.' };
     if (!(anticipo >= 0) || anticipo > total) return { ok: false, error: 'El anticipo no puede ser mayor que el precio.' };
-    return conCandado(() => {
+    // la clienta (con su teléfono) se pide a Código.gs antes de tomar el candado
+    const rc = llamarCodigo({ action: 'buscar', q: String(d.cliente || ''), pin: String(p.pin) });
+    const c = rc.ok && rc.tarjeta;
+    if (!c) return { ok: false, error: 'No encontramos a la clienta.' };
+    c.tel = String(c.tel || '').replace(/\D/g, '');
+    return candadoCat(() => {
       const ya = leerApartados().find(a => a.id === id);  // reintento por mala señal: no se duplica
       if (ya) return { ok: true, apartado: pubAp(conAbonos([ya])[0], true) };
-      const c = buscar(leer(), d.cliente);
-      if (!c) return { ok: false, error: 'No encontramos a la clienta.' };
       const alta = new Date();
       const a = {
         id, cliente: c.id, nombre: c.nombre, tel: c.tel, prenda, total, pagado: anticipo,
@@ -159,10 +165,10 @@ const ACCIONES_CATALOGO = {
   },
 
   abonar(p) {
-    if (!pinOk(p.pin)) return SIN_PIN;
+    if (!pinCatalogo(p.pin)) return SIN_PIN;
     const abonoId = String(p.abono || '');
     if (!/^B-[A-Z0-9]{4,12}$/.test(abonoId)) return { ok: false, error: 'Abono no válido.' };
-    return conCandado(() => {
+    return candadoCat(() => {
       const a = leerApartados().find(x => x.id === String(p.apartado || ''));
       if (!a) return { ok: false, error: 'No encontramos ese apartado.' };
       const repetido = leerAbonos().some(b => b.abono === abonoId);  // reintento: ya se guardó
@@ -181,8 +187,8 @@ const ACCIONES_CATALOGO = {
   },
 
   cancelarApartado(p) {
-    if (!pinOk(p.pin)) return SIN_PIN;
-    return conCandado(() => {
+    if (!pinCatalogo(p.pin)) return SIN_PIN;
+    return candadoCat(() => {
       const a = leerApartados().find(x => x.id === String(p.apartado || ''));
       if (!a) return { ok: false, error: 'No encontramos ese apartado.' };
       a.estado = 'cancelado';
@@ -193,10 +199,26 @@ const ACCIONES_CATALOGO = {
 };
 
 /* ---------- ayudantes ---------- */
+// Usa el mismo PIN que Código.gs: se lo pregunta a su doGet con la acción 'pin', igual que la página
+function pinCatalogo(pin) {
+  pin = String(pin || '');
+  if (!pin) return false;
+  return !!llamarCodigo({ action: 'pin', pin: pin }).ok;
+}
+function llamarCodigo(params) {
+  try { return JSON.parse(doGet({ parameter: params }).getContent()) || {}; } catch (e) { console.error(e); return { ok: false }; }
+}
+function candadoCat(fn) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try { return fn(); } finally { lock.releaseLock(); }
+}
 function hoja2(nombre, cols) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let h = ss.getSheetByName(nombre);
   if (!h) { h = ss.insertSheet(nombre); h.appendRow(cols); h.setFrozenRows(1); }
+  // columnas nuevas (como 'colores') se agregan al final de una hoja que ya existía
+  else if (h.getLastColumn() < cols.length) h.getRange(1, 1, 1, cols.length).setValues([cols]);
   return h;
 }
 function filas(nombre, cols) {
@@ -211,13 +233,14 @@ function leerCatalogo() {
     fila: x.fila, id: String(x.id), nombre: String(x.nombre), categoria: String(x.categoria || ''),
     precio: Number(x.precio) || 0, oferta: Number(x.oferta) || '',
     tallas: String(x.tallas || '').split(',').map(t => t.trim()).filter(Boolean),
+    colores: String(x.colores || '').split(',').map(t => t.trim()).filter(Boolean),
     fotos: String(x.fotos || '').split(',').map(t => t.trim()).filter(Boolean),
     descripcion: String(x.descripcion || ''), estado: ESTADOS.indexOf(x.estado) >= 0 ? x.estado : 'disponible',
     alta: String(x.alta || ''), actualizado: String(x.actualizado || ''),
   }));
 }
 function pubProd(x) {
-  return { id: x.id, nombre: x.nombre, categoria: x.categoria, precio: x.precio, oferta: x.oferta, tallas: x.tallas, fotos: x.fotos, descripcion: x.descripcion, estado: x.estado, alta: x.alta };
+  return { id: x.id, nombre: x.nombre, categoria: x.categoria, precio: x.precio, oferta: x.oferta, tallas: x.tallas, colores: x.colores, fotos: x.fotos, descripcion: x.descripcion, estado: x.estado, alta: x.alta };
 }
 function leerApartados() {
   return filas(HOJA_APARTADOS, COLS_AP).filter(x => x.id).map(x => ({

@@ -440,6 +440,10 @@ textarea { resize: vertical; min-height: 72px; }
       <strong class="small">Talla</strong>
       <div class="tallas" id="d-tallas" role="group" aria-label="Elige tu talla"></div>
     </div>
+    <div class="stack sm" id="d-colores-box">
+      <strong class="small">Color</strong>
+      <div class="tallas" id="d-colores" role="group" aria-label="Elige tu color"></div>
+    </div>
     <p class="banner" id="d-agotado" hidden>Por ahora está agotado. Pregúntanos si vuelve a llegar.</p>
     <a class="btn wa" id="d-wa" target="_blank" rel="noopener">Lo quiero, pedir por WhatsApp</a>
     <button class="btn ghost" type="button" id="d-share">Compartir</button>
@@ -480,8 +484,12 @@ textarea { resize: vertical; min-height: 72px; }
         <button class="btn ghost" type="button" id="e-talla-add" style="flex:1 1 90px">Agregar</button>
       </div>
     </div>
+    <label for="e-colores">Colores disponibles (opcional)
+      <input id="e-colores" maxlength="200" placeholder="Ej. Negro, beige, rosa palo" autocapitalize="sentences">
+      <span class="small muted">Escríbelos separados por coma.</span>
+    </label>
     <label for="e-desc">Descripción (opcional)
-      <textarea id="e-desc" maxlength="300" rows="3" placeholder="Tela, color, largo…"></textarea>
+      <textarea id="e-desc" maxlength="300" rows="3" placeholder="Tela, largo, cómo queda…"></textarea>
     </label>
     <label for="e-estado">¿Se muestra?
       <select id="e-estado">
@@ -1145,7 +1153,7 @@ $('f-abono').addEventListener('submit', async (e) => {
 });
 
 /* ---------- catálogo ---------- */
-let productos = [], catFiltro = 'Todo', catCargado = false, detalle = null, tallaSel = null;
+let productos = [], catFiltro = 'Todo', catCargado = false, detalle = null, tallaSel = null, colorSel = null;
 const esFotoDrive = (f) => !/^(data:|blob:|https?:)/.test(f);
 // Las fotos viven en Google Drive; se piden ya reducidas al tamaño en que se ven
 function fotoURL(f, w) { return esFotoDrive(f) ? `https://lh3.googleusercontent.com/d/${encodeURIComponent(f)}=w${w}` : f; }
@@ -1217,13 +1225,15 @@ $('k-salir').addEventListener('click', () => { salirDuena(); renderCatalogo(); c
 // Detalle de prenda
 cerrarAlTocarFuera($('d-prod'));
 function abrirDetalle(p) {
-  detalle = p; tallaSel = p.tallas.length === 1 ? p.tallas[0] : null;
+  if (!Array.isArray(p.colores)) p.colores = [];
+  detalle = p; tallaSel = p.tallas.length === 1 ? p.tallas[0] : null; colorSel = p.colores.length === 1 ? p.colores[0] : null;
   $('d-cat').textContent = p.categoria || 'Jireh shop';
   $('d-carr').innerHTML = p.fotos.length ? p.fotos.map((f, i) => imgHTML(f, 1000, `${p.nombre}, foto ${i + 1}`)).join('') : '<div></div>';
   $('d-carr-n').hidden = p.fotos.length < 2; $('d-carr-n').textContent = `Foto 1 de ${p.fotos.length} · desliza para ver más`;
   $('d-nombre').textContent = p.nombre; $('d-precio').innerHTML = precioHTML(p);
   $('d-desc').textContent = p.descripcion || ''; $('d-desc').hidden = !p.descripcion;
   $('d-tallas-box').hidden = !p.tallas.length; renderTallasDetalle();
+  $('d-colores-box').hidden = !p.colores.length; renderColoresDetalle();
   $('d-agotado').hidden = p.estado !== 'agotado';
   $('d-wa').textContent = p.estado === 'agotado' ? 'Preguntar por WhatsApp' : 'Lo quiero, pedir por WhatsApp';
   $('d-editar').hidden = !PIN;
@@ -1233,18 +1243,29 @@ function abrirDetalle(p) {
 function renderTallasDetalle() {
   $('d-tallas').innerHTML = detalle.tallas.map(t => `<button type="button" aria-pressed="${t === tallaSel}">${esc(t)}</button>`).join('');
 }
+function renderColoresDetalle() {
+  $('d-colores').innerHTML = detalle.colores.map(c => `<button type="button" aria-pressed="${c === colorSel}">${esc(c)}</button>`).join('');
+}
 function actualizarWA() {
   const p = detalle;
   let m = `Hola, vi esta prenda en el catálogo de Jireh shop:\n*${p.nombre}* · ${peso.format(p.oferta || p.precio)}`;
   if (p.estado === 'agotado') m += '\n¿La van a volver a tener?';
-  else if (tallaSel) m += `\nLa quiero en talla *${tallaSel}*.`;
-  else if (p.tallas.length) m += `\n¿Qué tallas tienen disponibles?`;
+  else {
+    const pide = [tallaSel && `talla *${tallaSel}*`, colorSel && `color *${colorSel}*`].filter(Boolean);
+    if (pide.length) m += `\nLa quiero en ${pide.join(' y ')}.`;
+    const falta = [!tallaSel && p.tallas.length && 'tallas', !colorSel && p.colores.length && 'colores'].filter(Boolean);
+    if (falta.length) m += `\n¿Qué ${falta.join(' y ')} tienen disponibles?`;
+  }
   m += `\n${enlaceProd(p.id)}`;
   $('d-wa').href = waLink(CONFIG.WHATSAPP, m);
 }
 $('d-tallas').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
   tallaSel = tallaSel === b.textContent ? null : b.textContent; renderTallasDetalle(); actualizarWA();
+});
+$('d-colores').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  colorSel = colorSel === b.textContent ? null : b.textContent; renderColoresDetalle(); actualizarWA();
 });
 $('d-carr').addEventListener('scroll', () => {
   const c = $('d-carr'); const i = Math.round(c.scrollLeft / c.clientWidth) + 1;
@@ -1260,11 +1281,12 @@ $('d-editar').addEventListener('click', () => { $('d-prod').close(); abrirEditor
 // Editor de prenda (dueña)
 let edit = null, edFotos = [], edTallas = [], borrarT;
 function abrirEditor(p) {
-  edit = p ? { ...p } : { id: codigo('P-'), nuevo: true, nombre: '', categoria: '', precio: '', oferta: '', tallas: [], fotos: [], descripcion: '', estado: 'disponible' };
+  edit = p ? { ...p } : { id: codigo('P-'), nuevo: true, nombre: '', categoria: '', precio: '', oferta: '', tallas: [], colores: [], fotos: [], descripcion: '', estado: 'disponible' };
   edFotos = edit.fotos.map(f => ({ f, src: fotoURL(f, 400) }));
   edTallas = [...edit.tallas];
   $('e-titulo').textContent = p ? 'Editar producto' : 'Agregar producto';
   $('e-nombre').value = edit.nombre; $('e-cat').value = edit.categoria; $('e-precio').value = edit.precio; $('e-oferta').value = edit.oferta || '';
+  $('e-colores').value = (edit.colores || []).join(', ');
   $('e-desc').value = edit.descripcion || ''; $('e-estado').value = edit.estado; $('e-talla-otra').value = '';
   $('e-cats').innerHTML = [...new Set([...CONFIG.CATEGORIAS, ...productos.map(x => x.categoria).filter(Boolean)])].map(c => `<option value="${esc(c)}"></option>`).join('');
   $('e-borrar').hidden = !p; resetBorrar(); showErr($('e-err'));
@@ -1319,6 +1341,12 @@ async function agregarFotos(files) {
     });
   }
 }
+// "negro, beige / rosa palo" → ['Negro', 'Beige', 'Rosa palo'] (sin repetir)
+function leerColores(t) {
+  const v = t.split(/[,;\/\n]+/).map(c => c.replace(/\s+/g, ' ').trim().slice(0, 25)).filter(Boolean)
+    .map(c => c[0].toUpperCase() + c.slice(1));
+  return [...new Set(v)].slice(0, 15);
+}
 function resetBorrar() { clearTimeout(borrarT); const b = $('e-borrar'); delete b.dataset.confirm; b.textContent = 'Borrar producto'; b.disabled = false; }
 $('f-edit').addEventListener('submit', async (e) => {
   e.preventDefault(); showErr($('e-err'));
@@ -1326,7 +1354,7 @@ $('f-edit').addEventListener('submit', async (e) => {
   const d = {
     id: edit.id, nombre: $('e-nombre').value.replace(/\s+/g, ' ').trim(), categoria: $('e-cat').value.trim(),
     precio: Math.round(Number($('e-precio').value)), oferta: Math.round(Number($('e-oferta').value)) || '',
-    tallas: edTallas, fotos: edFotos.map(x => x.f), descripcion: $('e-desc').value.trim(), estado: $('e-estado').value,
+    tallas: edTallas, colores: leerColores($('e-colores').value), fotos: edFotos.map(x => x.f), descripcion: $('e-desc').value.trim(), estado: $('e-estado').value,
   };
   if (!d.nombre) return showErr($('e-err'), 'Escribe el nombre de la prenda.');
   if (!(d.precio > 0)) return showErr($('e-err'), 'Escribe el precio.');
